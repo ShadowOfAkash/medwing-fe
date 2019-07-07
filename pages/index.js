@@ -1,74 +1,109 @@
-import {
-  Form,
-  Select,
-  InputNumber,
-  DatePicker,
-  Switch,
-  Slider,
-  Button
-} from 'antd'
+import React, {Component} from 'react';
+import MapGL, {Marker, Popup, NavigationControl} from 'react-map-gl';
 
-const FormItem = Form.Item
-const Option = Select.Option
+import ControlPanel from '../components/control-panel';
+import CustomMarker from '../components/custom-marker';
+// import CustomMarkerInfo from '../components/custom-marker-info';
 
-export default () => (
-  <div style={{ marginTop: 100 }}>
-    <Form layout='horizontal'>
-      <FormItem
-        label='Input Number'
-        labelCol={{ span: 8 }}
-        wrapperCol={{ span: 8 }}
+// import CITIES from '../../data/cities.json';
+
+const TOKEN = 'pk.eyJ1IjoiZ2FuZGhhcnYiLCJhIjoiY2p4cGtpM2x5MGg3MjNjbnR0bW96a2tiMyJ9.NjHFzK86ulM0754DDZr-Yw'; // Set your mapbox token here
+
+const fullscreenControlStyle = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  padding: '10px'
+};
+
+const navStyle = {
+  position: 'absolute',
+  top: 36,
+  left: 0,
+  padding: '10px'
+};
+
+export default class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      viewport: {
+        width: '100%',
+        height: '100%',
+        latitude: 52.520008,
+        longitude: 13.404954,
+        zoom: 5,
+        bearing: 0,
+        pitch: 0
+      },
+      isAddingMarker: false,
+      marker: {
+        latitude: 52.527784,
+        longitude: 13.403117
+      },
+      popupInfo: null
+    };
+  }
+
+  _addMarker = () => {
+    console.log('came?')
+    this.setState((prevState) => {
+      return { isAddingMarker: !prevState.isAddingMarker }
+    })
+  }
+
+  _onViewportChange = viewport => {
+    this.setState({viewport});
+  };
+
+  _onMarkerDragEnd = event => {
+    this.setState({
+      marker: {
+        longitude: event.lngLat[0],
+        latitude: event.lngLat[1]
+      }
+    });
+  };
+
+  _renderMarker = (marker, draggable = false) => {
+    return (
+      <Marker draggable={draggable} onDragEnd={this._onMarkerDragEnd} longitude={marker.longitude} latitude={marker.latitude}>
+        <CustomMarker size={20} onClick={() => this.setState({popupInfo: marker})} />
+      </Marker>
+    );
+  };
+
+  // _renderPopup() {
+  //   const {popupInfo} = this.state;
+
+  //   return (
+  //     popupInfo && (
+  //       <Popup
+  //         tipSize={5}
+  //         anchor="top"
+  //         longitude={popupInfo.longitude}
+  //         latitude={popupInfo.latitude}
+  //         closeOnClick={false}
+  //         onClose={() => this.setState({popupInfo: null})}
+  //       >
+  //         <CustomMarkerInfo info={popupInfo} />
+  //       </Popup>
+  //     )
+  //   );
+  // }
+
+  render() {
+    const {viewport, isAddingMarker, marker} = this.state;
+
+    return (
+      <MapGL
+        {...viewport}
+        onViewportChange={this._onViewportChange}
+        mapboxApiAccessToken={TOKEN}
       >
-        <InputNumber
-          size='large'
-          min={1}
-          max={10}
-          style={{ width: 100 }}
-          defaultValue={3}
-          name='inputNumber'
-        />
-        <a href='#'>Link</a>
-      </FormItem>
-
-      <FormItem label='Switch' labelCol={{ span: 8 }} wrapperCol={{ span: 8 }}>
-        <Switch defaultChecked name='switch' />
-      </FormItem>
-
-      <FormItem label='Slider' labelCol={{ span: 8 }} wrapperCol={{ span: 8 }}>
-        <Slider defaultValue={70} />
-      </FormItem>
-
-      <FormItem label='Select' labelCol={{ span: 8 }} wrapperCol={{ span: 8 }}>
-        <Select
-          size='large'
-          defaultValue='lucy'
-          style={{ width: 192 }}
-          name='select'
-        >
-          <Option value='jack'>jack</Option>
-          <Option value='lucy'>lucy</Option>
-          <Option value='disabled' disabled>
-            disabled
-          </Option>
-          <Option value='yiminghe'>yiminghe</Option>
-        </Select>
-      </FormItem>
-
-      <FormItem
-        label='DatePicker'
-        labelCol={{ span: 8 }}
-        wrapperCol={{ span: 8 }}
-      >
-        <DatePicker name='startDate' />
-      </FormItem>
-      <FormItem style={{ marginTop: 48 }} wrapperCol={{ span: 8, offset: 8 }}>
-        <Button size='large' type='primary' htmlType='submit'>
-          OK
-        </Button>
-        <Button size='large' style={{ marginLeft: 8 }}>
-          Cancel
-        </Button>
-      </FormItem>
-    </Form>
-  </div>
-)
+        {isAddingMarker && this._renderMarker(marker, true)}
+        <ControlPanel isAddingMarker={isAddingMarker} addMarker={this._addMarker} />
+      </MapGL>
+    );
+  }
+}
