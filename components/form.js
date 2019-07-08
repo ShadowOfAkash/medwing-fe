@@ -12,6 +12,7 @@ export default class InputForm extends PureComponent {
 
     return (
       <Form onSubmit={this.handleSubmit}>
+        <Form.Item help='drag & set the position' />
         <Form.Item>
           <Input placeholder="Enter your comment" />
         </Form.Item>

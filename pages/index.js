@@ -3,9 +3,7 @@ import MapGL, {Marker, Popup, NavigationControl} from 'react-map-gl';
 
 import ControlPanel from '../components/control-panel';
 import CustomMarker from '../components/custom-marker';
-// import CustomMarkerInfo from '../components/custom-marker-info';
-
-// import CITIES from '../../data/cities.json';
+import CustomMarkerInfo from '../components/custom-marker-info';
 
 const TOKEN = 'pk.eyJ1IjoiZ2FuZGhhcnYiLCJhIjoiY2p4cGtpM2x5MGg3MjNjbnR0bW96a2tiMyJ9.NjHFzK86ulM0754DDZr-Yw'; // Set your mapbox token here
 
@@ -22,6 +20,12 @@ const navStyle = {
   left: 0,
   padding: '10px'
 };
+
+const markers = [
+  {
+    latitude: 52.527784, longitude: 13.403117, comment: 'Hello world', image: 'http://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Above_Gotham.jpg/240px-Above_Gotham.jpg'
+  }
+]
 
 export default class App extends Component {
   constructor(props) {
@@ -68,32 +72,34 @@ export default class App extends Component {
   _renderMarker = (marker, draggable = false) => {
     return (
       <Marker draggable={draggable} onDragEnd={this._onMarkerDragEnd} longitude={marker.longitude} latitude={marker.latitude}>
-        <CustomMarker size={20} onClick={() => this.setState({popupInfo: marker})} />
+        <CustomMarker size={20} onClick={() => !draggable && this.setState({ popupInfo: marker })} />
       </Marker>
     );
   };
 
-  // _renderPopup() {
-  //   const {popupInfo} = this.state;
+  _renderPopup() {
+    const {popupInfo} = this.state;
 
-  //   return (
-  //     popupInfo && (
-  //       <Popup
-  //         tipSize={5}
-  //         anchor="top"
-  //         longitude={popupInfo.longitude}
-  //         latitude={popupInfo.latitude}
-  //         closeOnClick={false}
-  //         onClose={() => this.setState({popupInfo: null})}
-  //       >
-  //         <CustomMarkerInfo info={popupInfo} />
-  //       </Popup>
-  //     )
-  //   );
-  // }
+    return (
+      popupInfo && (
+        <Popup
+          tipSize={5}
+          anchor="top"
+          longitude={popupInfo.longitude}
+          latitude={popupInfo.latitude}
+          closeOnClick={false}
+          onClose={() => this.setState({popupInfo: null})}
+        >
+          <CustomMarkerInfo info={popupInfo} />
+        </Popup>
+      )
+    );
+  }
 
   render() {
     const {viewport, isAddingMarker, marker} = this.state;
+
+    const temp = markers.map(marker => this._renderMarker(marker))
 
     return (
       <MapGL
@@ -101,7 +107,9 @@ export default class App extends Component {
         onViewportChange={this._onViewportChange}
         mapboxApiAccessToken={TOKEN}
       >
+        {this._renderPopup()}
         {isAddingMarker && this._renderMarker(marker, true)}
+        {!isAddingMarker && temp}
         <ControlPanel isAddingMarker={isAddingMarker} addMarker={this._addMarker} />
       </MapGL>
     );
